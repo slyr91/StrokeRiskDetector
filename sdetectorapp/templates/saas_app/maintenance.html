@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Maintenance{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    {% if accuracy_measure %}
+        <p>Currently the internal model is {{ accuracy_measure['accuracy'] * 100 }}% accurate. {{ "Recommend running Improve step." if accuracy_measure['accuracy'] < 0.8 }}</p>
+        <form method="post">
+            <input type="submit" value="Improve">
+        </form>
+    {% else %}
+        <p>Not enough entries to measure accuracy.</p>
+        <form action="{{ url_for('index.index') }}">
+            <input type="submit" value="Return">
+        </form>
+    {% endif %}
+{% endblock %}

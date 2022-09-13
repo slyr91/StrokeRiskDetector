@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}How It Works{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <article class="howitworks">
+        <h3>Identifying Risks</h3>
+        <p>Machine learning is a powerful tool that is revolutionizing the world. The machine learning algorithm used
+            by this site is known as a Logistic Regression Classifier and it is very good at detecting patterns. It can
+            then identify a classification that those patterns correlate to.</p>
+        <p>Correlations can help us as humans identify some of the patterns that this algorithm will take advantage of
+            to classify whether or not a patient is likely to have a stroke in the future. Hopefully this information
+            will aid you in making decisions that benefit the patients that are within your care.</p>
+        <p>Below is a heatmap of all the factors that the algorithm is looking at. As you can see the largest
+            correlation by far in the stroke cross section is age.</p>
+        <img src="{{ url_for('index.display_heatmap') }}" width="1000px" height="800px">
+        <p>Age is a big factor and it has definitely influenced the algorithm during the learning phase of development.
+            As evidenced in the following graph, the stroke risk estimator has calculated the older patients with a
+            higher risk value.</p>
+        <img src="{{ url_for('index.display_line_graph') }}" width="1000px" height="800px">
+        <p>While it may appear that age is a huge risk factor it is not the only risk. In fact, age is such a high risk
+            factor because of the fact that other high risk factors are more likely to develop the older a person gets.
+            Hypertension and heart disease are major contributors to having a stroke and you are more likely to
+            develop these conditions as you get older.</p>
+        <p>The following graph shows the number of people, depicted as a percentage of the population, who have one or
+            both conditions.</p>
+        <img src="{{ url_for('index.display_bar_graph') }}" width="1000px" height="800px">
+        <p>All these risk factors, and more, help contribute to the likelihood of a patient having a stroke. It is much
+            harder for a human, even an expertly trained human, to see all the factors and identify a person as being
+            high risk for having a stroke. By using machine learning we can help doctors identify high risk patients and
+            automate patient care response.</p>
+    </article>
+{% endblock %}

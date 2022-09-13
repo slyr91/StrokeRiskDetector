@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Results{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <p>High risk of Stroke: {{ result.result }}</p>
+    <p>Probability of a stroke in the near future: {{ result.probability }}%</p>
+    <form action="{{ url_for('index.index') }}">
+        <input type="submit" value="Return Home" />
+    </form>
+{% endblock %}

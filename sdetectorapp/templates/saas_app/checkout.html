@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Checkout{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <p>Patient risk of stroke: {{ "High!" if patient['stroke_prediction'] == 1 else "Low" }}</p>
+    <form action="{{ url_for('index.submit', id=patient['id']) }}" method="post">
+        <label for="stroke_actual">Did the patient have a stroke during hospital stay?</label>
+        <select name="stroke_actual" id="stroke_actual" required>
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </select>
+        <input type="submit" value="Checkout" onclick="return confirm('Are you sure?');">
+    </form>
+{% endblock %}

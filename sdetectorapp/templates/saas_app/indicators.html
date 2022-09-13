@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Submit Indicators{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <form method="post">
+        <label for="first_name">First Name?</label>
+        <input type="text" name= "first_name" id="first_name" required>
+        <label for="gender">Gender?</label>
+        <select name="gender" id="gender" required>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+        </select>
+        <label for="age">Age</label>
+        <input type="number" name="age" id="age" pattern="\d{1,2}" required>
+        <label for="hypertension">Hypertension?</label>
+        <select name="hypertension" id="hypertension" required>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select>
+        <label for="heart_disease">Heart Disease?</label>
+        <select name="heart_disease" id="heart_disease" required>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+        </select>
+        <label for="work_type">Work Type?</label>
+        <select name="work_type" id="work_type" required>
+            <option value="Private">Private</option>
+            <option value="Self-employed">Self-employed</option>
+            <option value="Govt_job">Government Job</option>
+            <option value="children">Child</option>
+            <option value="Never_worked">Never Worked</option>
+        </select>
+        <label for="Residence_type">Residence Type?</label>
+        <select name="Residence_type" id="Residence_type" required>
+            <option value="Urban">Urban</option>
+            <option value="Rural">Rural</option>
+        </select>
+        <label for="avg_glucose_level">Average Glucose Level?</label>
+        <input type="number" name="avg_glucose_level" id="avg_glucose_level" pattern="\d{1,2,3}|\d{1,2,3}\.\d"required>
+        <label for="bmi">BMI?</label>
+        <input type="number" name="bmi" id="bmi" pattern="\d{1,2}|\d{1,2}\.\d" required>
+        <label for="smoking_status">Smoking Status?</label>
+        <select name="smoking_status" id="smoking_status" required>
+            <option value="formerly smoked">Formerly Smoked</option>
+            <option value="never smoked">Never Smoked</option>
+            <option value="smokes">Smokes</option>
+            <option value="Unknown">Unknown</option>
+        </select>
+        <input type="submit" value="Submit">
+    </form>
+{% endblock %}
