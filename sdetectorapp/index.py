@@ -5,7 +5,6 @@ from os import remove
 
 import joblib
 import pandas as pd
-import psycopg2
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, send_file
@@ -26,13 +25,11 @@ heatmap_img = None
 @login_required
 def index():
     db = get_db()
-    db_cur = db.cursor()
-    db_cur.execute(
+    results = db.query(
         "SELECT id, submitter_id, first_name, age, stroke_prediction "
-        f"FROM predictions WHERE submitter_id = {g.user['id']} "
+        f"FROM Stroke_Detector_App.predictions WHERE submitter_id = {g.user['id']} "
         "ORDER BY id"
     )
-    results = db_cur.fetchall()
     if len(results) == 0:
         patients = []
     else:
@@ -80,15 +77,13 @@ def patient_info_input():
                       'probability': round(estimator.lkm_model.predict_proba(dataframe)[0, 1] * 100, 2)}
 
             db = get_db()
-            db_cur = db.cursor()
-            db_cur.execute(
-                "INSERT INTO predictions (submitter_id, first_name, gender, age, hypertension, heart_disease, "
-                "work_type, residence_type, avg_glucose_level, bmi, smoking_status, stroke_prediction) "
+            db.query(
+                "INSERT INTO Stroke_Detector_App.predictions (submitter_id, first_name, gender, age, hypertension, "
+                "heart_disease, work_type, residence_type, avg_glucose_level, bmi, smoking_status, stroke_prediction) "
                 f"VALUES ({g.user['id']}, '{first_name.capitalize()}', '{gender}', {int(age)}, {int(hypertension)}, "
                 f"{int(heart_disease)}, '{work_type}', '{residence_type}', {float(avg_glucose_level)}, "
                 f"{float(bmi)}, '{smoking_status}', {1 if result['result'] else 0})"
             )
-            db.commit()
 
             return render_template("saas_app/results.html", result=result)
 
@@ -100,12 +95,10 @@ def patient_info_input():
 def submit(id):
     if request.method == 'GET':
         db = get_db()
-        db_cur = db.cursor()
-        db_cur.execute(
+        result = db.query(
             "SELECT id, stroke_prediction "
-            f"FROM predictions WHERE submitter_id = {g.user['id']} AND id = {id}"
+            f"FROM Stroke_Detector_App.predictions WHERE submitter_id = {g.user['id']} AND id = {id}"
         )
-        result = db_cur.fetchone()
         patient = {'id': result[0], 'stroke_prediction': result[1]}
         return render_template('saas_app/checkout.html', patient=patient)
 
@@ -120,28 +113,24 @@ def submit(id):
             flash(error)
         else:
             db = get_db()
-            db_cur = db.cursor()
-            db_cur.execute(
+            patient_info = db.query(
                 "SELECT gender, age, hypertension, heart_disease, work_type, "
-                "residence_type, avg_glucose_level, bmi, smoking_status, stroke_prediction FROM predictions "
-                f"WHERE submitter_id = {g.user['id']} AND id = {id}"
+                "residence_type, avg_glucose_level, bmi, smoking_status, stroke_prediction "
+                f"FROM Stroke_Detector_App.predictions WHERE submitter_id = {g.user['id']} AND id = {id}"
             )
-            patient_info = db_cur.fetchone()
-            db_cur.execute(
-                "INSERT INTO submitted(gender, age, hypertension, heart_disease, work_type, residence_type, "
-                "avg_glucose_level, bmi, smoking_status, stroke_prediction, stroke_actual, used_to_improve) "
-                f"VALUES ('{patient_info[0]}', {patient_info[1]}, {patient_info[2]}, "
+            db.query(
+                "INSERT INTO Stroke_Detector_App.submitted(gender, age, hypertension, heart_disease, work_type, "
+                "residence_type, avg_glucose_level, bmi, smoking_status, stroke_prediction, stroke_actual, "
+                f"used_to_improve) VALUES ('{patient_info[0]}', {patient_info[1]}, {patient_info[2]}, "
                 f"{patient_info[3]}, '{patient_info[4]}', '{patient_info[5]}', "
                 f"{patient_info[6]}, {patient_info[7]}, '{patient_info[8]}', "
                 f"{patient_info[9]}, {request.form['stroke_actual']}, 0)"
             )
-            db.commit()
 
             # Drop the entry in the predictions table because the patient has been checked out of the system.
-            db_cur.execute(
-                f"DELETE FROM predictions WHERE id = {id}"
+            db.query(
+                f"DELETE FROM Stroke_Detector_App.predictions WHERE id = {id}"
             )
-            db.commit()
 
             return redirect(url_for('index.index'))
 
@@ -151,13 +140,11 @@ def submit(id):
 def maintain():
     if request.method == 'GET':
         db = get_db()
-        db_cur = db.cursor()
-        db_cur.execute(
+        stroke_pred_act = db.query(
             'SELECT stroke_prediction, stroke_actual '
-            'FROM submitted '
+            'FROM Stroke_Detector_App.submitted '
             'WHERE used_to_improve = 0'
         )
-        stroke_pred_act = db_cur.fetchall()
 
         accuracy_measure = None
         if len(stroke_pred_act) > 0:
@@ -174,11 +161,9 @@ def maintain():
         return render_template('saas_app/maintenance.html', accuracy_measure=accuracy_measure)
     else:  # For POST requests
         db = get_db()
-        db_cur = db.cursor()
-        db_cur.execute(
-            'SELECT * FROM submitted'
+        data_raw = db.query(
+            'SELECT * FROM Stroke_Detector_App.submitted'
         )
-        data_raw = db_cur.fetchall()
 
         data = {'gender': [], 'age': [],
                 'hypertension': [], 'heart_disease': [],
@@ -209,19 +194,18 @@ def maintain():
         joblib.dump(estimator.lkm_model, 'updated-model.joblib')
         file = open('updated-model.joblib', 'rb').read()
 
-        db_cur.execute(
-            "INSERT INTO estimators (filename, create_date, object) "
+        db.query(
+            "INSERT INTO Stroke_Detector_App.estimators (filename, create_date, object) "
             f"VALUES ('model-updated-{datetime.now().strftime('%d-%m-%y-%H%M')}.joblib', '{datetime.now()}', "
-            f"{psycopg2.Binary(file)})"
+            f"{file})"
         )
 
         remove('updated-model.joblib')
 
-        db_cur.execute(
-            'UPDATE submitted SET used_to_improve = 1 '
+        db.query(
+            'UPDATE Stroke_Detector_App.submitted SET used_to_improve = 1 '
             'WHERE used_to_improve = 0'
         )
-        db.commit()
 
         return redirect(url_for('index.index'))
 

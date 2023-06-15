@@ -15,23 +15,23 @@ def register():
         username = request.form['username']
         password = request.form['password']
         db = get_db()
-        db_cur = db.cursor()
         error = None
 
-        db_cur.execute(
-            f"SELECT id FROM user WHERE username = '{username}'"
+        result = db.query(
+            f"SELECT id FROM Stroke_Detector_App.users WHERE username = '{username}'"
         )
 
         if not username:
             error = 'Username is required.'
         elif not password:
             error = 'Password is required.'
-        elif db_cur.fetchone() is not None:
+        elif result[0] is not None:
             error = 'User {} is already registered.'.format(username)
 
         if error is None:
-            db_cur.execute(
-                f"INSERT INTO users (username, password) VALUES ('{username}', '{generate_password_hash(password)}')"
+            db.query(
+                f"INSERT INTO Stroke_Detector_App.users (username, password) "
+                f"VALUES ('{username}', '{generate_password_hash(password)}')"
             )
             db.commit()
             return redirect(url_for('auth.login'))
@@ -47,12 +47,10 @@ def login():
         username = request.form['username']
         password = request.form['password']
         db = get_db()
-        db_cur = db.cursor()
         error = None
-        db_cur.execute(
-            f"SELECT * FROM users WHERE username = '{username}'"
+        user = db.query(
+            f"SELECT * FROM Stroke_Detector_App.users WHERE username = '{username}'"
         )
-        user = db_cur.fetchone()
 
         if user is None:
             error = 'Incorrect username.'
@@ -77,11 +75,9 @@ def load_logged_in_user():
         g.user = None
     else:
         db = get_db()
-        db_cur = db.cursor()
-        db_cur.execute(
-            f"SELECT * FROM users WHERE id = '{user_id}'"
+        user = db.query(
+            f"SELECT * FROM Stroke_Detector_App.users WHERE id = '{user_id}'"
         )
-        user = db_cur.fetchone()
         g.user = {'id': user[0], 'username': user[1]}
 
 

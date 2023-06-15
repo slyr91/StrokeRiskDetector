@@ -1,1 +1,1 @@
-SECRET_KEY=b'Byte litteral string password here'
+SECRET_KEY=b'Byte literal string password here'
