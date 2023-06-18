@@ -27,10 +27,10 @@ def index():
     db = get_db()
     results = db.query(
         "SELECT id, submitter_id, first_name, age, stroke_prediction "
-        f"FROM Stroke_Detector_App.predictions WHERE submitter_id = {g.user['id']} "
+        f"FROM Stroke_Detector_App.predictions WHERE submitter_id = '{g.user['id']}' "
         "ORDER BY id"
-    )
-    if len(results) == 0:
+    ).result()
+    if results.total_rows == 0:
         patients = []
     else:
         patients = []
@@ -80,7 +80,7 @@ def patient_info_input():
             db.query(
                 "INSERT INTO Stroke_Detector_App.predictions (submitter_id, first_name, gender, age, hypertension, "
                 "heart_disease, work_type, residence_type, avg_glucose_level, bmi, smoking_status, stroke_prediction) "
-                f"VALUES ({g.user['id']}, '{first_name.capitalize()}', '{gender}', {int(age)}, {int(hypertension)}, "
+                f"VALUES ('{g.user['id']}', '{first_name.capitalize()}', '{gender}', {int(age)}, {int(hypertension)}, "
                 f"{int(heart_disease)}, '{work_type}', '{residence_type}', {float(avg_glucose_level)}, "
                 f"{float(bmi)}, '{smoking_status}', {1 if result['result'] else 0})"
             )
@@ -90,15 +90,16 @@ def patient_info_input():
     return render_template("saas_app/indicators.html")
 
 
-@bp.route('/<int:id>/checkout', methods=['GET', 'POST'])
+@bp.route('/<id>/checkout', methods=['GET', 'POST'])
 @login_required
 def submit(id):
     if request.method == 'GET':
         db = get_db()
         result = db.query(
             "SELECT id, stroke_prediction "
-            f"FROM Stroke_Detector_App.predictions WHERE submitter_id = {g.user['id']} AND id = {id}"
-        )
+            f"FROM Stroke_Detector_App.predictions WHERE submitter_id = '{g.user['id']}' AND id = '{id}'"
+        ).result()
+        result = next(result)
         patient = {'id': result[0], 'stroke_prediction': result[1]}
         return render_template('saas_app/checkout.html', patient=patient)
 
@@ -116,8 +117,9 @@ def submit(id):
             patient_info = db.query(
                 "SELECT gender, age, hypertension, heart_disease, work_type, "
                 "residence_type, avg_glucose_level, bmi, smoking_status, stroke_prediction "
-                f"FROM Stroke_Detector_App.predictions WHERE submitter_id = {g.user['id']} AND id = {id}"
-            )
+                f"FROM Stroke_Detector_App.predictions WHERE submitter_id = '{g.user['id']}' AND id = '{id}'"
+            ).result()
+            patient_info = next(patient_info)
             db.query(
                 "INSERT INTO Stroke_Detector_App.submitted(gender, age, hypertension, heart_disease, work_type, "
                 "residence_type, avg_glucose_level, bmi, smoking_status, stroke_prediction, stroke_actual, "
@@ -125,12 +127,12 @@ def submit(id):
                 f"{patient_info[3]}, '{patient_info[4]}', '{patient_info[5]}', "
                 f"{patient_info[6]}, {patient_info[7]}, '{patient_info[8]}', "
                 f"{patient_info[9]}, {request.form['stroke_actual']}, 0)"
-            )
+            ).result()
 
             # Drop the entry in the predictions table because the patient has been checked out of the system.
             db.query(
-                f"DELETE FROM Stroke_Detector_App.predictions WHERE id = {id}"
-            )
+                f"DELETE FROM Stroke_Detector_App.predictions WHERE id = '{id}'"
+            ).result()
 
             return redirect(url_for('index.index'))
 
@@ -144,10 +146,10 @@ def maintain():
             'SELECT stroke_prediction, stroke_actual '
             'FROM Stroke_Detector_App.submitted '
             'WHERE used_to_improve = 0'
-        )
+        ).result()
 
         accuracy_measure = None
-        if len(stroke_pred_act) > 0:
+        if stroke_pred_act.total_rows > 0:
             correct = 0
             count = 0
             for entry in stroke_pred_act:
@@ -163,7 +165,7 @@ def maintain():
         db = get_db()
         data_raw = db.query(
             'SELECT * FROM Stroke_Detector_App.submitted'
-        )
+        ).result()
 
         data = {'gender': [], 'age': [],
                 'hypertension': [], 'heart_disease': [],
@@ -198,14 +200,14 @@ def maintain():
             "INSERT INTO Stroke_Detector_App.estimators (filename, create_date, object) "
             f"VALUES ('model-updated-{datetime.now().strftime('%d-%m-%y-%H%M')}.joblib', '{datetime.now()}', "
             f"{file})"
-        )
+        ).result()
 
         remove('updated-model.joblib')
 
         db.query(
             'UPDATE Stroke_Detector_App.submitted SET used_to_improve = 1 '
             'WHERE used_to_improve = 0'
-        )
+        ).result()
 
         return redirect(url_for('index.index'))
 

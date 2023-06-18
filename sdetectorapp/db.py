@@ -101,7 +101,7 @@ def init_db():
 
     db.create_table(table)
 
-    db.query("INSERT INTO Stroke_Detector_App.users (username, password)"
+    db.query("INSERT INTO Stroke_Detector_App.users (username, password)" # Password is p@55word!234
              "VALUES ('admin', 'pbkdf2:sha256:150000$IXrklqX2$8b03da10e3f2193a172dd21512931d5392bdf340a8347bdd3afd11b8cfcf2710')").result()
 
     file = open('stroke-risk-log-model.joblib', 'rb').read()
@@ -209,7 +209,7 @@ def init_db_command():
             f"{float(patient_info['avg_glucose_level'][i])}, {float(patient_info['bmi'][i])}, "
             f"'{patient_info['smoking_status'][i]}', {int(patient_info['stroke'][i])}, "
             f"{int(patient_info['stroke'][i])}, 1)"
-        ).result()
+        )
 
     db.close()
 

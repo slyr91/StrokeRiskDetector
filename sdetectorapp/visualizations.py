@@ -17,9 +17,9 @@ def get_age_risk_line_graph():
     for i in ages:
         dataset = db.query(
             f"SELECT * FROM Stroke_Detector_App.submitted WHERE age BETWEEN {i - 9} AND {i}"
-        )
+        ).result()
 
-        if len(dataset) < 1:
+        if dataset.total_rows < 1:
             avg_predictions.append(0)
             continue
 
@@ -72,9 +72,9 @@ def get_ht_hd_bar_graph():
     for i in ages:
         dataset = db.query(
             f"SELECT * FROM Stroke_Detector_App.submitted WHERE age BETWEEN {i - 9} AND {i}"
-        )
+        ).result()
 
-        if len(dataset) == 0:
+        if dataset.total_rows == 0:
             continue
 
         dataset_df = {'gender': [], 'age': [],
@@ -124,7 +124,7 @@ def get_heatmap():
     db = get_db()
     data_raw = db.query(
         'SELECT * FROM Stroke_Detector_App.submitted'
-    )
+    ).result()
 
     data = {'gender': [], 'age': [],
             'hypertension': [], 'heart_disease': [],
@@ -149,7 +149,7 @@ def get_heatmap():
 
     dataframe['bmi'].fillna(dataframe['bmi'].mean(), inplace=True)
 
-    cols_with_multiple_cats = [col for col in dataframe.columns if dataframe[col].nunique() > 2 and
+    cols_with_multiple_cats = [col for col in dataframe.columns if dataframe[col].nunique() > 1 and
                                dataframe[col].dtype == 'object']
 
     for col in cols_with_multiple_cats:

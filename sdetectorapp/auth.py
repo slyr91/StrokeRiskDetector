@@ -19,7 +19,9 @@ def register():
 
         result = db.query(
             f"SELECT id FROM Stroke_Detector_App.users WHERE username = '{username}'"
-        )
+        ).result()
+
+        result = next(result)
 
         if not username:
             error = 'Username is required.'
@@ -33,7 +35,6 @@ def register():
                 f"INSERT INTO Stroke_Detector_App.users (username, password) "
                 f"VALUES ('{username}', '{generate_password_hash(password)}')"
             )
-            db.commit()
             return redirect(url_for('auth.login'))
 
         flash(error)
@@ -50,7 +51,9 @@ def login():
         error = None
         user = db.query(
             f"SELECT * FROM Stroke_Detector_App.users WHERE username = '{username}'"
-        )
+        ).result()
+
+        user = next(user)
 
         if user is None:
             error = 'Incorrect username.'
@@ -77,7 +80,8 @@ def load_logged_in_user():
         db = get_db()
         user = db.query(
             f"SELECT * FROM Stroke_Detector_App.users WHERE id = '{user_id}'"
-        )
+        ).result()
+        user = next(user)
         g.user = {'id': user[0], 'username': user[1]}
 
 
