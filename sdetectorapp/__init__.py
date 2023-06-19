@@ -8,7 +8,7 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.environ.get('DATABASE_URL', 'postgres://postgres:?abc1234@localhost:5432/stroke_app')
+        # DATABASE=os.environ.get('DATABASE_URL', 'postgres://postgres:?abc1234@localhost:5432/stroke_app')
     )
 
     if test_config is None:

@@ -11,17 +11,15 @@ from sdetectorapp.db import get_db
 
 def get_age_risk_line_graph():
     db = get_db()
-    db_cur = db.cursor()
     ages = range(10, 120, 10)
     avg_predictions = []
 
     for i in ages:
-        db_cur.execute(
-            f"SELECT * FROM submitted WHERE age BETWEEN {i - 9} AND {i}"
-        )
-        dataset = db_cur.fetchall()
+        dataset = db.query(
+            f"SELECT * FROM Stroke_Detector_App.submitted WHERE age BETWEEN {i - 9} AND {i}"
+        ).result()
 
-        if len(dataset) < 1:
+        if dataset.total_rows < 1:
             avg_predictions.append(0)
             continue
 
@@ -68,17 +66,15 @@ def get_age_risk_line_graph():
 
 def get_ht_hd_bar_graph():
     db = get_db()
-    db_cur = db.cursor()
     ages = range(10, 120, 10)
     occurrences = {'age_group': [], 'percentage_of_sample': [], 'risk_factor': []}
 
     for i in ages:
-        db_cur.execute(
-            f"SELECT * FROM submitted WHERE age BETWEEN {i - 9} AND {i}"
-        )
-        dataset = db_cur.fetchall()
+        dataset = db.query(
+            f"SELECT * FROM Stroke_Detector_App.submitted WHERE age BETWEEN {i - 9} AND {i}"
+        ).result()
 
-        if len(dataset) == 0:
+        if dataset.total_rows == 0:
             continue
 
         dataset_df = {'gender': [], 'age': [],
@@ -126,11 +122,9 @@ def get_ht_hd_bar_graph():
 
 def get_heatmap():
     db = get_db()
-    db_cur = db.cursor()
-    db_cur.execute(
-        'SELECT * FROM submitted'
-    )
-    data_raw = db_cur.fetchall()
+    data_raw = db.query(
+        'SELECT * FROM Stroke_Detector_App.submitted'
+    ).result()
 
     data = {'gender': [], 'age': [],
             'hypertension': [], 'heart_disease': [],
@@ -155,13 +149,13 @@ def get_heatmap():
 
     dataframe['bmi'].fillna(dataframe['bmi'].mean(), inplace=True)
 
-    cols_with_multiple_cats = [col for col in dataframe.columns if dataframe[col].nunique() > 2 and
+    cols_with_multiple_cats = [col for col in dataframe.columns if dataframe[col].nunique() > 1 and
                                dataframe[col].dtype == 'object']
 
     for col in cols_with_multiple_cats:
-        OH_encoded_col = pd.get_dummies(dataframe[col], prefix=col)
+        oh_encoded_col = pd.get_dummies(dataframe[col], prefix=col)
         dataframe = dataframe.drop(col, axis=1)
-        dataframe = pd.concat([dataframe, OH_encoded_col], axis=1)
+        dataframe = pd.concat([dataframe, oh_encoded_col], axis=1)
 
     fig = plt.figure(figsize=(20, 24))
     plt.title('Correlation Heatmap')
